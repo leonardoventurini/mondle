@@ -1,5 +1,6 @@
 import type Chai from 'chai'
 import type { Mongoose } from 'mongoose'
+import { isMemoryMongoAvailable } from './utils'
 
 import chaiAsPromised from 'chai-as-promised'
 import sinonChai from 'sinon-chai'
@@ -9,7 +10,6 @@ import 'chai/register-expect.js'
 import 'chai/register-should.js'
 import 'chai/register-assert.js'
 import 'jsdom-global/register.js'
-import { isMemoryMongoAvailable } from './utils'
 
 type Params = {
   database?: string
