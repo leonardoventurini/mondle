@@ -1,4 +1,4 @@
-import chai from 'chai'
+import type Chai from 'chai'
 import type { Mongoose } from 'mongoose'
 
 import chaiAsPromised from 'chai-as-promised'
@@ -18,6 +18,7 @@ type Params = {
   beforeDisconnect?: () => Promise<void>
   afterDisconnect?: () => Promise<void>
   mongoose?: Mongoose
+  chai?: typeof Chai
 }
 
 export function setup(params: Params) {
@@ -28,6 +29,7 @@ export function setup(params: Params) {
     beforeDisconnect,
     afterDisconnect,
     mongoose,
+    chai,
   } = params
 
   chai.use(chaiAsPromised)
