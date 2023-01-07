@@ -1,49 +1,65 @@
-import mongoose from 'mongoose'
-import { after, before } from 'mocha'
 import { MongoMemoryReplSet } from 'mongodb-memory-server'
 import chalk from 'chalk'
+import type { Mongoose } from 'mongoose'
 
-let replSet = null
+export const setupDatabase = (
+  mongoose: Mongoose,
+  database: string,
+  beforeConnect: () => Promise<void>,
+  afterConnect: () => Promise<void>,
+  beforeDisconnect: () => Promise<void>,
+  afterDisconnect: () => Promise<void>,
+) => {
+  let replSet = null
 
-export const connect = async (database: string) => {
-  if (replSet) return
-  if (mongoose.connection.readyState === 1) return
+  const connect = async (
+    database: string,
+    beforeConnect: () => Promise<void>,
+    afterConnect: () => Promise<void>,
+  ) => {
+    if (replSet) return
+    if (mongoose.connection.readyState === 1) return
 
-  replSet = await MongoMemoryReplSet.create({
-    replSet: { storageEngine: 'wiredTiger', dbName: database },
-  })
+    replSet = await MongoMemoryReplSet.create({
+      replSet: { storageEngine: 'wiredTiger', dbName: database },
+    })
 
-  await replSet.waitUntilRunning()
+    await replSet.waitUntilRunning()
 
-  const uri = replSet.getUri()
+    const uri = replSet.getUri()
 
-  await mongoose.connect(uri, {
-    dbName: database,
-    autoCreate: true,
-    autoIndex: true,
-  })
-}
+    mongoose.set('strictQuery', false)
 
-export const clearDatabase = async () => {
-  await Promise.all(
-    Object.values(mongoose.connection.collections).map(async collection => {
-      const count = await collection.countDocuments()
+    await beforeConnect?.()
 
-      if (count) {
-        console.log(
-          chalk.bgGray.hex(
-            '#bada55',
-          )`clearing collection: "${collection.collectionName}" (${count} documents)`,
-        )
-        await collection.deleteMany({})
-      }
-    }),
-  )
-}
+    await mongoose.connect(uri, {
+      dbName: database,
+      autoCreate: true,
+      autoIndex: true,
+    })
 
-export const setupDatabase = (database: string) => {
+    await afterConnect?.()
+  }
+
+  const clearDatabase = async () => {
+    await Promise.all(
+      Object.values(mongoose.connection.collections).map(async collection => {
+        const count = await collection.countDocuments()
+
+        if (count) {
+          console.log(
+            chalk.bgGray.hex(
+              '#bada55',
+            )`clearing collection: "${collection.collectionName}" (${count} documents)`,
+          )
+          await collection.deleteMany({})
+        }
+      }),
+    )
+  }
+
   before(async () => {
-    await connect(database)
+    await connect(database, beforeConnect, afterConnect)
 
     await Promise.all(
       Object.values(mongoose.connection.collections).map(async collection => {
@@ -79,8 +95,12 @@ export const setupDatabase = (database: string) => {
       return
     }
 
+    await beforeDisconnect?.()
+
     await mongoose.disconnect()
     await replSet.stop()
     replSet = null
+
+    await afterDisconnect?.()
   })
 }
