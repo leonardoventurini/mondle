@@ -9,6 +9,7 @@ import 'chai/register-expect.js'
 import 'chai/register-should.js'
 import 'chai/register-assert.js'
 import 'jsdom-global/register.js'
+import { isMemoryMongoAvailable } from './utils'
 
 type Params = {
   database?: string
@@ -37,7 +38,7 @@ export function setup(params: Params) {
   chai.use(sinonChai)
   chai.use(chaiSubset)
 
-  if (database && mongoose) {
+  if (database && mongoose && isMemoryMongoAvailable()) {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { setupDatabase } = require('./db')
 
