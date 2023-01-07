@@ -1,4 +1,3 @@
-// noinspection JSConstantReassignment
 import mongoose from 'mongoose'
 import { after, before } from 'mocha'
 import { MongoMemoryReplSet } from 'mongodb-memory-server'
@@ -11,7 +10,7 @@ export const connect = async (database: string) => {
   if (mongoose.connection.readyState === 1) return
 
   replSet = await MongoMemoryReplSet.create({
-    replSet: { storageEngine: 'wiredTiger', dbName: 'sapienza-test' },
+    replSet: { storageEngine: 'wiredTiger', dbName: database },
   })
 
   await replSet.waitUntilRunning()
