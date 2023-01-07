@@ -4,7 +4,6 @@ import type { Mongoose } from 'mongoose'
 import chaiAsPromised from 'chai-as-promised'
 import sinonChai from 'sinon-chai'
 import chaiSubset from 'chai-subset'
-import { isMemoryMongoAvailable } from './utils'
 
 import 'chai/register-expect.js'
 import 'chai/register-should.js'
@@ -32,11 +31,13 @@ export function setup(params: Params) {
     chai,
   } = params
 
+  if (!chai) return
+
   chai.use(chaiAsPromised)
   chai.use(sinonChai)
   chai.use(chaiSubset)
 
-  if (database && mongoose && isMemoryMongoAvailable()) {
+  if (database && mongoose) {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { setupDatabase } = require('./db')
 
