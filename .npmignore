@@ -4,3 +4,4 @@
 .eslintrc.js
 .envrc
 tsconfig.json
+/lib/tsconfig.tsbuildinfo
